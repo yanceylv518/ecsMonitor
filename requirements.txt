@@ -1,0 +1,7 @@
+PySide6>=6.6
+pyqtgraph>=0.13
+keyring>=24.0
+alibabacloud_cms20190101>=3.0
+alibabacloud_ecs20140526>=4.0
+alibabacloud_tea_openapi>=0.3.8
+pytest>=8.0
