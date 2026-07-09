@@ -21,3 +21,6 @@ dist/
 # IDE
 .idea/
 .vscode/
+
+# Claude Code 本地个人配置（settings.json 随仓库提交）
+.claude/settings.local.json

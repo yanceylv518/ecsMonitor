@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "out=$(git pull --ff-only 2>&1); jq -n --arg ctx \"[会话启动] 已执行 git pull --ff-only 同步远程：$out\" '{hookSpecificOutput:{hookEventName:\"SessionStart\",additionalContext:$ctx}}'",
+            "timeout": 30,
+            "statusMessage": "同步远程代码…"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in \"$CLAUDE_PROJECT_DIR\"/*) echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"[项目规范] 项目文件已修改。本次修改全部完成后：执行 git status 检查——若存在非本次修改涉及的非预期文件，停止并告知用户；若只有本次修改涉及的文件，直接 commit 并 push。\"}}';; esac",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
