@@ -15,23 +15,10 @@ from PySide6.QtWidgets import (
 from ..core.config import AppConfig
 from ..core.models import InstanceInfo
 from ..core.storage import Storage
+from . import theme
 from .format import format_rate, format_time_ago
 
 _COLUMNS = 3
-
-_CARD_QSS = """
-QFrame#card {
-    border: 1px solid palette(mid);
-    border-radius: 8px;
-    background: palette(base);
-}
-QFrame#card[alert="true"] { border: 2px solid #d93026; }
-QFrame#card[stopped="true"] { background: palette(window); }
-QLabel#name { font-size: 15px; font-weight: bold; }
-QLabel#iid { color: palette(placeholder-text); font-size: 11px; }
-QLabel.metricValue { font-size: 14px; font-weight: 600; }
-QLabel.metricValue[alert="true"] { color: #d93026; }
-"""
 
 
 class InstanceCard(QFrame):
@@ -42,28 +29,36 @@ class InstanceCard(QFrame):
         self.instance_id = info.instance_id
         self.setObjectName("card")
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        self.setMinimumWidth(220)
+        self.setMinimumWidth(230)
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(16, 14, 16, 14)
+        layout.setSpacing(4)
         self._name = QLabel(info.instance_name or info.instance_id)
-        self._name.setObjectName("name")
+        self._name.setObjectName("cardName")
         self._iid = QLabel(info.instance_id)
-        self._iid.setObjectName("iid")
+        self._iid.setObjectName("cardId")
         self._status = QLabel()
         layout.addWidget(self._name)
         layout.addWidget(self._iid)
         layout.addWidget(self._status)
+        layout.addSpacing(6)
 
         grid = QGridLayout()
         grid.setColumnStretch(1, 1)
+        grid.setVerticalSpacing(6)
         self._values: dict[str, QLabel] = {}
-        for row, (key, label) in enumerate(
+        for row, (key, label_text) in enumerate(
             [("CPUUtilization", "CPU"), ("memory_usedutilization", "内存"), ("InternetOutRate", "公网出")]
         ):
-            grid.addWidget(QLabel(label), row, 0)
+            label = QLabel(label_text)
+            label.setProperty("class", "metricLabel")
+            grid.addWidget(label, row, 0)
             value = QLabel("--")
             value.setProperty("class", "metricValue")
-            value.setAlignment(Qt.AlignmentFlag.AlignRight)
+            if key == "CPUUtilization":  # CPU 是首要指标，字号更大
+                value.setProperty("primary", "true")
+            value.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             grid.addWidget(value, row, 1)
             self._values[key] = value
         layout.addLayout(grid)
@@ -73,7 +68,9 @@ class InstanceCard(QFrame):
     ) -> None:
         running = info.status == "Running"
         self._status.setText(("● " if running else "○ ") + info.status)
-        self._status.setStyleSheet(f"color: {'#2da44e' if running else 'gray'};")
+        self._status.setStyleSheet(
+            f"color: {theme.GOOD if running else theme.MUTED}; font-size: 12px;"
+        )
 
         alert = False
         thresholds = {
@@ -114,19 +111,22 @@ class OverviewPage(QWidget):
 
     def __init__(self, storage: Storage, config: AppConfig):
         super().__init__()
+        self.setObjectName("page")
         self._storage = storage
         self._config = config
         self._cards: dict[str, InstanceCard] = {}
-        self.setStyleSheet(_CARD_QSS)
 
         outer = QVBoxLayout(self)
+        outer.setContentsMargins(16, 12, 16, 12)
         self._hint = QLabel("最近采集：--")
+        self._hint.setProperty("class", "hint")
         outer.addWidget(self._hint)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
         container = QWidget()
+        container.setObjectName("page")
         self._grid = QGridLayout(container)
         self._grid.setSpacing(12)
         self._grid.setAlignment(Qt.AlignmentFlag.AlignTop)

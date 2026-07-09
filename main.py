@@ -24,6 +24,7 @@ from ecs_monitor.core.config import AppConfig, data_dir, default_db_path, logs_d
 from ecs_monitor.core.mock_source import MockMetricSource
 from ecs_monitor.core.source import MetricSource
 from ecs_monitor.core.storage import Storage
+from ecs_monitor.ui import theme
 from ecs_monitor.ui.main_window import MainWindow
 from ecs_monitor.worker import CollectorWorker
 
@@ -91,6 +92,7 @@ def main() -> int:
 
     app = QApplication(sys.argv)
     app.setApplicationName("EcsMonitor")
+    app.setStyleSheet(theme.APP_QSS)
 
     ui_storage = Storage(db_path)  # UI 线程读连接
     if args.mock:

@@ -44,7 +44,8 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
 
         self._nav = QListWidget()
-        self._nav.setFixedWidth(140)
+        self._nav.setObjectName("nav")
+        self._nav.setFixedWidth(160)
         self._nav.setIconSize(QSize(20, 20))
         for name in ("总览", "详情", "设置"):
             QListWidgetItem(name, self._nav)
